@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: rebelinblue/kubeview-arm
+  tag: 0.1.14
+  pullPolicy: Always
+
+nameOverride: kubeview
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi

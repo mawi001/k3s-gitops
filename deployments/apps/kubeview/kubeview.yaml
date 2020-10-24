@@ -1,0 +1,17 @@
+
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: kubeview
+  namespace: apps
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: kubeview
+  chart:
+    git: git@github.com:REBELinBLUE/kubeview.git
+    path: deployments/helm/kubeview
+    ref: master
+  valuesFrom:
+    - externalSourceRef:
+        url: https://raw.githubusercontent.com/mawi001/k3s-gitops/master/deployments/apps/kubeview/kubeview-values.yaml

@@ -200,7 +200,7 @@ spec:
     - metadata:
         name: vault-data
       spec:
-       storageClassName: local-path
+        storageClassName: local-path
         accessModes:
           - ReadWriteOnce
         resources:

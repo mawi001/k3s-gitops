@@ -68,7 +68,7 @@ metadata:
     app: vault
 spec:
   serviceName: vault
-  replicas: 1
+  replicas: 3
   updateStrategy:
     type: RollingUpdate
   selector:

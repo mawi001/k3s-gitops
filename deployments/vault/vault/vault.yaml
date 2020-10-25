@@ -8,7 +8,7 @@ metadata:
     app: vault
 data:
   vault.hcl: |-
-    storage "file" {
+    storage "raft" {
         path = "/vault/data"
     }
     listener "tcp" {
@@ -22,6 +22,7 @@ data:
     max_lease_ttl = "12h"
     default_lease_ttl = "12h"
     cluster_name = "k3s-vault"
+
 ---
 apiVersion: v1
 kind: ServiceAccount

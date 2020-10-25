@@ -90,7 +90,7 @@ spec:
       terminationGracePeriodSeconds: 10
       containers:
         - name: vault
-          image: rebelinblue/vault:1.4.2
+          image: mwillemsma/vault-arm:1.0.0
           imagePullPolicy: Always
           ports:
             - name: api
@@ -127,31 +127,6 @@ spec:
               value: "http://$(POD_IP):8200"
             - name: SKIP_CHOWN
               value: "true"
-            - name: VAULT_UNSEAL_KEY_1
-              valueFrom:
-                secretKeyRef:
-                  name: vault-unseal-keys
-                  key: VAULT_UNSEAL_KEY_1
-            - name: VAULT_UNSEAL_KEY_2
-              valueFrom:
-                secretKeyRef:
-                  name: vault-unseal-keys
-                  key: VAULT_UNSEAL_KEY_2
-            - name: VAULT_UNSEAL_KEY_3
-              valueFrom:
-                secretKeyRef:
-                  name: vault-unseal-keys
-                  key: VAULT_UNSEAL_KEY_3
-            - name: VAULT_UNSEAL_KEY_4
-              valueFrom:
-                secretKeyRef:
-                  name: vault-unseal-keys
-                  key: VAULT_UNSEAL_KEY_4
-            - name: VAULT_UNSEAL_KEY_5
-              valueFrom:
-                secretKeyRef:
-                  name: vault-unseal-keys
-                  key: VAULT_UNSEAL_KEY_5
           livenessProbe:
             httpGet:
               path: /v1/sys/health?standbyok=true&uninitcode=204&sealedcode=204&

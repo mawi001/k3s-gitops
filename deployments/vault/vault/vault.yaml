@@ -45,7 +45,7 @@ metadata:
   annotations:
     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: vault
   publishNotReadyAddresses: true

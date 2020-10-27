@@ -56,40 +56,70 @@ if [ "$init_status" == "false" ]; then
   # command terminated with exit code 2
   # until kubectl -n $NAMESPACE exec vault-0 -- vault login -no-print "$VAULT_ROOT_TOKEN"; do
   until kubectl -n $NAMESPACE exec vault-0 -- vault login "$VAULT_ROOT_TOKEN"; do
-    echo "waiting for local node to become active"
+    echo "waiting for local node to become active..."
     sleep 3
   done
 
-  export VAULT_SKIP_VERIFY=true
-
-  until kubectl --namespace $NAMESPACE exec vault-0 -- vault operator raft list-peers; do
-    echo "Settle raft protocol"
-    sleep 3
-  done
+  # until kubectl --namespace $NAMESPACE exec vault-0 -- vault operator raft list-peers; do
+  #   echo "Settle raft protocol"
+  #   sleep 3
+  # done
 
 fi
 
 echo "creating port-forward"
 # kubectl exec vault-0 -vault login $VAULT_ROOT_TOKEN
-kubectl -n $NAMESPACE  port-forward service/vault 8200:8200 --pod-running-timeout=1m0s >/dev/null 2>&1 &
+kubectl -n $NAMESPACE  port-forward pod/vault-0 8200:8200 --pod-running-timeout=1m0s >/dev/null 2>&1 &
 export VAULT_FWD_PID=$!
+
+echo "port-forward pid ${VAULT_FWD_PID}"
+
+until nc -zv localhost 8200 ; do echo 'waiting for vault service accepting connections on localhost:8200' ; sleep 1 ; done
+
 sleep 5
 
-VAULT_ADDR=http://localhost:8200
-VAULT_SKIP_VERIFY=true
+setup='false'
 
-vault login -no-print "$VAULT_ROOT_TOKEN"
+until [[ $setup == 'true' ]]; do
 
-vault operator raft list-peers
+  export VAULT_ADDR=http://localhost:8200
+  export VAULT_SKIP_VERIFY=true
+  vault login -no-print "$VAULT_ROOT_TOKEN"
+  vault operator raft list-peers
+  vault secrets enable -path=secret kv-v2
+  vault auth list
+  vault kv put secret/service/vault/production root_token=$VAULT_ROOT_TOKEN key1=$VAULT_UNSEAL_KEY1 key2=$VAULT_UNSEAL_KEY2 key3=$VAULT_UNSEAL_KEY3 key4=$VAULT_UNSEAL_KEY4 key5=$VAULT_UNSEAL_KEY5
+  vault kv get secret/service/vault/production
 
-vault secrets enable -path=secret kv-v2
 
-vault auth list
+  export VAULT_SECRETS_OPERATOR_NAMESPACE=$(kubectl -n $NAMESPACE get sa vault-secrets-operator -o jsonpath="{.metadata.namespace}")
+  export VAULT_SECRET_NAME=$(kubectl -n $NAMESPACE get sa vault-secrets-operator -o jsonpath="{.secrets[*]['name']}")
+  export SA_JWT_TOKEN=$(kubectl -n $NAMESPACE get secret $VAULT_SECRET_NAME -o jsonpath="{.data.token}" | base64 --decode; echo)
+  export SA_CA_CRT=$(kubectl -n $NAMESPACE get secret $VAULT_SECRET_NAME -o jsonpath="{.data['ca\.crt']}" | base64 --decode; echo)
+  export K8S_HOST=$(kubectl -n $NAMESPACE config view --minify -o jsonpath='{.clusters[0].cluster.server}')
 
-vault kv put secret/service/vault/production root_token=$VAULT_ROOT_TOKEN key1=$VAULT_UNSEAL_KEY1 key2=$VAULT_UNSEAL_KEY2 key3=$VAULT_UNSEAL_KEY3 key4=$VAULT_UNSEAL_KEY4 key5=$VAULT_UNSEAL_KEY5
+  ## TODO: deploy vault-secrets-operator
 
-vault kv get secret/service/vault/production
+  # create read-only policy for kubernetes
+  vault policy write vault-secrets-operator vault/vault-secrets-operator.hcl
 
+  vault auth enable kubernetes
+
+  # Tell Vault how to communicate with the Kubernetes cluster
+  vault write auth/kubernetes/config \
+    token_reviewer_jwt="$SA_JWT_TOKEN" \
+    kubernetes_host="$K8S_HOST" \
+    kubernetes_ca_cert="$SA_CA_CRT"
+
+  # Create a role named, 'vault-secrets-operator' to map Kubernetes Service Account to Vault policies and default token TTL
+  vault write auth/kubernetes/role/vault-secrets-operator \
+    bound_service_account_names="vault-secrets-operator" \
+    bound_service_account_namespaces="$VAULT_SECRETS_OPERATOR_NAMESPACE" \
+    policies=vault-secrets-operator \
+    ttl=24h
+
+  setup='true'
+done
 
 joined='false'
 
@@ -117,42 +147,6 @@ until [[ $unsealed == 'true' ]]; do
   unsealed='true'
 done
 
-
-
-
-export VAULT_SECRETS_OPERATOR_NAMESPACE=$(kubectl -n $NAMESPACE get sa vault-secrets-operator -o jsonpath="{.metadata.namespace}")
-export VAULT_SECRET_NAME=$(kubectl -n $NAMESPACE get sa vault-secrets-operator -o jsonpath="{.secrets[*]['name']}")
-export SA_JWT_TOKEN=$(kubectl -n $NAMESPACE get secret $VAULT_SECRET_NAME -o jsonpath="{.data.token}" | base64 --decode; echo)
-export SA_CA_CRT=$(kubectl -n $NAMESPACE get secret $VAULT_SECRET_NAME -o jsonpath="{.data['ca\.crt']}" | base64 --decode; echo)
-export K8S_HOST=$(kubectl -n $NAMESPACE config view --minify -o jsonpath='{.clusters[0].cluster.server}')
-
-## TODO: deploy vault-secrets-operator
-
-# create read-only policy for kubernetes
-cat <<EOF | vault policy write vault-secrets-operator -
-path "secret/data/*" {
-  capabilities = ["read"]
-}
-EOF
-
-vault auth enable kubernetes
-
-# Tell Vault how to communicate with the Kubernetes cluster
-vault write auth/kubernetes/config \
-  token_reviewer_jwt="$SA_JWT_TOKEN" \
-  kubernetes_host="$K8S_HOST" \
-  kubernetes_ca_cert="$SA_CA_CRT"
-
-# Create a role named, 'vault-secrets-operator' to map Kubernetes Service Account to Vault policies and default token TTL
-vault write auth/kubernetes/role/vault-secrets-operator \
-  bound_service_account_names="vault-secrets-operator" \
-  bound_service_account_namespaces="$VAULT_SECRETS_OPERATOR_NAMESPACE" \
-  policies=vault-secrets-operator \
-  ttl=24h
-
-
 kubectl -n $NAMESPACE get service
-
-vault secrets list
 
 kill $VAULT_FWD_PID

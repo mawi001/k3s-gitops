@@ -1,0 +1,16 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: metrics-server
+  namespace: kube-system
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: metrics-server
+  chart:
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    name: metrics-server
+    version: 2.11.2
+  valuesFrom:
+    - externalSourceRef:
+        url: https://raw.githubusercontent.com/mawi001/k3s-gitops/master/deployments/kube-system/metrics-server/metrics-server-values.yaml

@@ -1,0 +1,17 @@
+image:
+  repository: k8s.gcr.io/metrics-server-arm
+  tag: v0.3.7
+
+args:
+  - --kubelet-insecure-tls
+  - --kubelet-preferred-address-types=InternalIP
+
+service:
+  labels:
+    kubernetes.io/cluster-service: "true"
+    kubernetes.io/name: "Metrics-Server"
+
+podAnnotations:
+  scheduler.alpha.kubernetes.io/critical-pod: ''
+
+priorityClassName: system-node-critical

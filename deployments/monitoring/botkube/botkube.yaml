@@ -43,6 +43,12 @@ spec:
             - status.availableReplicas
           events:
           - all
+        - name: v1/services
+          namespaces:
+            include:
+              - all
+          events:
+            - all
 
   valueFileSecrets:
   - name: "botkube-helm-values"

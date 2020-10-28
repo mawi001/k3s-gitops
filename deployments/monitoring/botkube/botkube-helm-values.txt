@@ -1,0 +1,6 @@
+communications:
+  slack:
+    enabled: true
+    channel: 'k3s'
+    token: '$BOTKUBE_SLACK_TOKEN'
+    notiftype: short

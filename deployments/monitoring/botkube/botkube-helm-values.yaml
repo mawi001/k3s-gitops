@@ -6,5 +6,5 @@ metadata:
 spec:
   keys:
     - values.yaml
-  path: secrets/monitoring/botkube/botkube-helm-values
+  path: secret/deployments/monitoring/botkube/botkube-helm-values
   type: Opaque

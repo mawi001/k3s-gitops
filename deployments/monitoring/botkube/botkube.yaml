@@ -32,6 +32,17 @@ spec:
               - all
           events:
             - all
+        - name: apps/v1/deployments
+          namespaces:
+            include:
+            - all
+          updateSetting:
+            includeDiff: true
+            fields:
+            - spec.template.spec.containers[*].image
+            - status.availableReplicas
+          events:
+          - all
 
   valueFileSecrets:
   - name: "botkube-helm-values"

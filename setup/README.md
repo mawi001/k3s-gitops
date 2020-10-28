@@ -285,3 +285,40 @@ identity/     identity     identity_43f7d872     identity store
 secret/       kv           kv_66a72585           n/a
 sys/          system       system_b57be24f       system endpoints used for control, policy and debugging
 ```
+
+
+## Write secrets to Vault
+
+use the script `./write-secrets-to-vault.sh` to write secrets to Vault
+
+
+```sh
+./write-secrets-to-vault.sh                                            
+Writing secret/deployments/monitoring/botkube/botkube-helm-values to vault
+Key              Value
+---              -----
+created_time     2020-10-28T15:14:39.773500912Z
+deletion_time    n/a
+destroyed        false
+version          4
+```
+
+## Test Vault-secret-operator is reading from Vault
+
+Check the pod logs
+
+`k logs -n vault -l app.kubernetes.io/instance=vault-secrets-operator -f`
+
+The operator should read from vault and update Kubernetes secrets. The logs show expected behavior. 
+
+```sh
+{"level":"info","ts":1603897724.4103765,"logger":"controller_vaultsecret","msg":"Reconciling VaultSecret","Request.Namespace":"monitoring","Request.Name":"botkube-helm-values"}
+{"level":"info","ts":1603897724.4105616,"logger":"vault","msg":"Read secret secret/deployments/monitoring/botkube/botkube-helm-values"}
+{"level":"info","ts":1603897724.4289556,"logger":"controller_vaultsecret","msg":"Updating a Secret","Request.Namespace":"monitoring","Request.Name":"botkube-helm-values","Secret.Namespace":"monitoring","Secret.Name":"botkube-helm-values"}
+{"level":"info","ts":1603897724.5456312,"logger":"controller_vaultsecret","msg":"Reconciling VaultSecret","Request.Namespace":"monitoring","Request.Name":"botkube-helm-values"}
+{"level":"info","ts":1603897724.545951,"logger":"vault","msg":"Read secret secret/deployments/monitoring/botkube/botkube-helm-values"}
+{"level":"info","ts":1603897724.5650191,"logger":"controller_vaultsecret","msg":"Updating a Secret","Request.Namespace":"monitoring","Request.Name":"botkube-helm-values","Secret.Namespace":"monitoring","Secret.Name":"botkube-helm-values"}
+{"level":"info","ts":1603898024.5406802,"logger":"controller_vaultsecret","msg":"Reconciling VaultSecret","Request.Namespace":"monitoring","Request.Name":"botkube-helm-values"}
+{"level":"info","ts":1603898024.5407786,"logger":"vault","msg":"Read secret secret/deployments/monitoring/botkube/botkube-helm-values"}
+{"level":"info","ts":1603898024.5557017,"logger":"controller_vaultsecret","msg":"Updating a Secret","Request.Namespace":"monitoring","Request.Name":"botkube-helm-values","Secret.Namespace":"monitoring","Secret.Name":"botkube-helm-values"}
+```

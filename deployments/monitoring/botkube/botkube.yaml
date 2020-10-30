@@ -49,6 +49,12 @@ spec:
               - all
           events:
             - all
+        - name: v1/namespaces
+          namespaces:
+            include:
+              - all
+          events:
+            - all
 
   valueFileSecrets:
   - name: "botkube-helm-values"

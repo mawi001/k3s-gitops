@@ -1,0 +1,57 @@
+image: traefik
+imageTag: 1.7.20
+
+serviceType: NodePort
+
+ssl:
+  enabled: true
+  enforced: true
+  permanentRedirect: true
+  generateTLS: false
+
+accessLogs:
+  enabled: true
+
+tolerations:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+
+nodeSelector:
+  beta.kubernetes.io/arch: arm
+  node-role.kubernetes.io/master: "true"
+
+metrics:
+  prometheus:
+    enabled: true
+  serviceMonitor:
+    enabled: true
+
+cpuRequest: 25m
+memoryRequest: 128Mi
+cpuLimit: 200m
+memoryLimit: 384Mi
+
+deployment:
+  hostPort:
+    httpEnabled: 80
+    httpsEnabled: 443
+    dashboardEnabled: 8080
+
+rbac:
+  enabled: true
+
+kubernetes:
+  ingressEndpoint:
+    ip: 10.54.0.253
+
+dashboard:
+  enabled: true
+  domain: traefik.iot-nerd.nl
+  ingress:
+    annotations:
+      kubernetes.io/ingress.class: traefik
+      kubernetes.io/tls-acme: "true"
+    tls:
+      - hosts:
+          - traefik.iot-nerd.nl
+        secretName: traefik-tls

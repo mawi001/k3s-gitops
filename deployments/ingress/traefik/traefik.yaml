@@ -1,0 +1,16 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: traefik-ingress-controller
+  namespace: ingress
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: traefik-ingress-controller
+  chart:
+    repository: https://kubernetes-charts.storage.googleapis.com/
+    name: traefik
+    version: 1.85.0
+  valuesFrom:
+    - externalSourceRef:
+        url: https://raw.githubusercontent.com/mawi001/k3s-gitops/master/deployments/ingress/traefik/traefik-values.yaml

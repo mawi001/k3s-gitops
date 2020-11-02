@@ -1,0 +1,30 @@
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-test
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: alleskapot@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-test
+    solvers:
+      - http01:
+          ingress:
+            class: traefik
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prd
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: alleskapot@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-prd
+    solvers:
+      - http01:
+          ingress:
+            class: traefik

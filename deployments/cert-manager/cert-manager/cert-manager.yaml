@@ -1,0 +1,16 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: cert-manager
+  chart:
+    repository: https://charts.jetstack.io
+    name: cert-manager
+    version: v0.15.1
+valuesFrom:
+  - externalSourceRef:
+      url: https://raw.githubusercontent.com/mawi001/k3s-gitops/master/deployments/cert-manager/cert-manager/cert-manager-valuegitops

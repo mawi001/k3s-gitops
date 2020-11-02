@@ -13,4 +13,4 @@ spec:
     version: v0.15.1
 valuesFrom:
   - externalSourceRef:
-      url: https://raw.githubusercontent.com/mawi001/k3s-gitops/master/deployments/cert-manager/cert-manager/cert-manager-valuegitops
+      url: https://raw.githubusercontent.com/mawi001/k3s-gitops/master/deployments/cert-manager/cert-manager/cert-manager-values.yaml
